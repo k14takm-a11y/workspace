@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>wrs_controller</name>
+  <version>0.0.0</version>
+  <description>controller for HSR Simulator OSS</description>
+  <maintainer email="hsrb@todo.todo">hsrb</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

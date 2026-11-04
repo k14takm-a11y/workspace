@@ -1,0 +1,5 @@
+FROM python:2.7.17
+
+RUN pip install pylint pycodestyle
+
+ENTRYPOINT ["/bin/bash", "-c"]

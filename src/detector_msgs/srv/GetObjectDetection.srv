@@ -1,0 +1,7 @@
+std_msgs/Header header
+string type
+---
+bool successed
+string error_code
+string error_string
+detector_msgs/BBoxArray bboxes

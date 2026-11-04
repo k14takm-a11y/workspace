@@ -1,0 +1,20 @@
+<launch>
+  <arg name="class_config_path"
+       default="$(find wrs_detector)/config/wod-c_classes.json" />
+  <arg name="model_checkpoint_path"
+       default="$(find wrs_detector)/checkpoints/id9_model_e50.pth" />
+
+  <node name="frcnn_detector" pkg="wrs_detector" type="detector_node.py" output="screen">
+    <param name="detector" value="frcnn_finetuned"/>
+    <param name="frcnn_finetuned/class_config_path" value="$(arg class_config_path)"/>
+    <param name="frcnn_finetuned/checkpoint_path" value="$(arg model_checkpoint_path)"/>
+    <param name="mode" value="with_request"/>
+    <param name="threshold" value="0.2"/>
+    <param name="publish_image" value="true"/>
+
+    <remap from="in" to="/hsrb/head_rgbd_sensor/rgb/image_rect_color" />
+    <remap from="result" to="detection/bbox" />
+    <remap from="result_image" to="detection/image" />
+    <remap from="get_object_detection" to="detection/get_object_detection" />
+  </node>
+</launch>

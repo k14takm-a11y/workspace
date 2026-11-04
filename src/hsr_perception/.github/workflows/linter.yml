@@ -1,0 +1,28 @@
+name: linter
+
+on:
+  pull_request:
+    branches:
+      - '*'
+  push:
+    branches:
+      - product
+      - build
+      - 'feature/*'
+
+jobs:
+  linter-check:
+    runs-on: ubuntu-latest
+    env:
+      PY_SCRIPT_PATH: './scripts/hsr_perception'
+    steps:
+      - name: checkout branch
+        uses: actions/checkout@master
+      - name: setup linter
+        run: pip3 install pylint pycodestyle
+      - name: config file existence check
+        run: ls ./pylintrc ./setup.cfg > /dev/null
+      - name: pylint check
+        run: pylint $PY_SCRIPT_PATH --rcfile=./pylintrc --disable=import-error --fail-under=8.0
+      - name: pycodestyle check
+        run: pycodestyle $PY_SCRIPT_PATH

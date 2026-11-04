@@ -1,0 +1,4 @@
+detector_msgs/BBox bbox
+string frame
+---
+bool result

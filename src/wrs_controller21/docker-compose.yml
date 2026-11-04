@@ -1,0 +1,97 @@
+# Copyright (c) 2020 TOYOTA MOTOR CORPORATION
+# All rights reserved.
+
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+
+#  * Redistributions of source code must retain the above copyright notice,
+#  this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#  notice, this list of conditions and the following disclaimer in the
+#  documentation and/or other materials provided with the distribution.
+#  * Neither the name of Toyota Motor Corporation nor the names of its
+#  contributors may be used to endorse or promote products derived from
+#  this software without specific prior written permission.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+# edited by smilab
+version: "3.1"
+services:
+  xserver:
+    image: devrt/xserver
+    ipc: host
+    security_opt:
+      - seccomp:unconfined
+    ports:
+      - "3000:80"
+    healthcheck:
+      test: ["CMD-SHELL", "test -e /tmp/.X11-unix/X0"]
+      interval: "1s"
+      retries: 20
+  simulator:
+    # image: ghcr.io/hsr-project/tmc_wrs_binary:noetic-nvidia
+    build:
+      context: ./sim_wrs_ws/
+    ipc: host
+    security_opt:
+      - seccomp:unconfined
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      - DISPLAY=:0
+    volumes_from:
+      - xserver
+    depends_on:
+      - xserver
+  workspace:
+    # env_file:
+    #   - .env
+    build:
+      context: ./workspace/src/wrs_controller21/docker
+    ipc: host
+    security_opt:
+      - seccomp:unconfined
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    ports:
+      - "3001:3000"
+      - "3002:8888"
+    volumes:
+      - ./workspace/src:/workspace/src:cached
+      - ./workspace/module:/workspace/module:cached
+      - ~/.gitconfig:/home/developer/.gitconfig
+    environment:
+      - DISPLAY=:0
+      - ROS_MASTER_URI=http://simulator:11311/
+    volumes_from:
+      - xserver
+      - simulator
+    depends_on:
+      - xserver
+    secrets:
+      - host_ssh_key
+
+secrets:
+  host_ssh_key:
+    file: ~/.ssh/ssh_key

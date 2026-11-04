@@ -1,0 +1,8 @@
+<launch>
+  <node name="pcd_to_tf" pkg="hsr_perception" type="pcd_to_tf_node.py" output="screen" />
+  <node name="tf_manager" pkg="hsr_perception" type="tf_manager_node.py" output="screen">
+    <param name="max_num_of_tf" value="5" />
+    <param name="tf_publish_freq" value="2.0" />
+  </node>
+  <node name="grasp_standard" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 base_footprint grasp_standard" />
+</launch>

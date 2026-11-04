@@ -1,0 +1,3 @@
+[submodule "modules/mmdetection"]
+	path = modules/mmdetection
+	url = https://github.com/open-mmlab/mmdetection.git

@@ -1,0 +1,20 @@
+<launch>
+  <arg name="model_config_path"
+       default="$(find wrs_detector)/modules/mmdetection/configs/faster_rcnn/faster_rcnn_r50_fpn_mstrain_3x_coco.py" />
+  <arg name="model_weights_path"
+       default="$(find wrs_detector)/checkpoints/faster_rcnn_r50_fpn_mstrain_3x_coco_20210524_110822-e10bd31c.pth" />
+
+  <node name="mmdet_detector" pkg="wrs_detector" type="detector_node.py" output="screen">
+    <param name="detector" value="mmdet"/>
+    <param name="mmdet/config" value="$(arg model_config_path)"/>
+    <param name="mmdet/checkpoint" value="$(arg model_weights_path)"/>
+    <param name="mode" value="with_request"/>
+    <param name="threshold" value="0.2"/>
+    <param name="publish_image" value="true"/>
+
+    <remap from="in" to="/hsrb/head_rgbd_sensor/rgb/image_rect_color" />
+    <remap from="result" to="detection/bbox" />
+    <remap from="result_image" to="detection/image" />
+    <remap from="get_object_detection" to="detection/get_object_detection" />
+  </node>
+</launch>

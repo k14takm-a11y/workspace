@@ -1,0 +1,38 @@
+name: linter
+
+on:
+  pull_request:
+    branches-ignore:
+      - product
+      - build
+      - 'feature/*'
+  push:
+    branches:
+      - product
+      - build
+      - 'feature/*'
+
+jobs:
+  linter-check:
+    runs-on: ubuntu-latest
+    env:
+      PY_SCRIPT_PATH: './scripts/wrs_algorithm'
+      DOCKER_IMAGE_NAME: testing-image-py2
+    steps:
+      - name: checkout branch
+        uses: actions/checkout@master
+      - uses: docker/build-push-action@v4
+        with:
+          file: Dockerfile.test
+          tags: ${{ env.DOCKER_IMAGE_NAME }}
+          load: true
+          push: false
+
+      - name: Run formatter
+        run: |
+          docker run --rm -e "PY_SCRIPT_PATH" -v ${{ github.workspace }}:/src ${{ env.DOCKER_IMAGE_NAME }} "
+            cd /src
+            ls ./pylintrc ./setup.cfg > /dev/null
+            pylint $PY_SCRIPT_PATH --rcfile=./pylintrc --disable=import-error || true
+            pycodestyle $PY_SCRIPT_PATH
+            "
