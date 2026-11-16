@@ -31,9 +31,8 @@ from wrs_algorithm.util import omni_base, whole_body, gripper
 
 
 class GridPlanner(object):
-    """
-    nav_msgs/OccupancyGridの上で経路を計画するクラス
-    """
+    """62411499 髙野幹太"""
+    # nav_msgs/OccupancyGridの上で経路を計画するクラス
     WALL_RADIUS = 0.28      # 壁と台車中心の最小距離[m]
     OBSTACLE_RADIUS = 0.34  # 床の障害物と台車中心の最小距離[m]
     PREFERRED_MARGIN = 0.55  # この距離までは離れるほど良いとする[m]
@@ -42,29 +41,27 @@ class GridPlanner(object):
     SEARCH_MARGIN = 1.5     # 始点と終点の外側を探索する幅[m]
 
     def __init__(self, occupancy_grid):
+        """62411499 髙野幹太"""
         info = occupancy_grid.info
         self.resolution = info.resolution
         self.origin = (info.origin.position.x, info.origin.position.y)
         self.grid = np.array(occupancy_grid.data).reshape(info.height, info.width)
 
     def to_cell(self, point):
-        """
-        map座標を(行, 列)に変換する
-        """
+        """62411499 髙野幹太"""
+        # map座標を(行, 列)に変換する
         return (int((point[1] - self.origin[1]) / self.resolution),
                 int((point[0] - self.origin[0]) / self.resolution))
 
     def to_point(self, cell):
-        """
-        (行, 列)をセル中心のmap座標に変換する
-        """
+        """62411499 髙野幹太"""
+        # (行, 列)をセル中心のmap座標に変換する
         return (self.origin[0] + (cell[1] + 0.5) * self.resolution,
                 self.origin[1] + (cell[0] + 0.5) * self.resolution)
 
     def _cost_map(self, window, obstacles):
-        """
-        探索範囲内の各セルの通行コストを計算する
-        """
+        """62411499 髙野幹太"""
+        # 探索範囲内の各セルの通行コストを計算する
         rows = np.arange(window[0], window[1])
         cols = np.arange(window[2], window[3])
         cell_x = self.origin[0] + (cols[np.newaxis, :] + 0.5) * self.resolution
@@ -84,9 +81,8 @@ class GridPlanner(object):
         return cost
 
     def plan(self, start, goal, obstacles):
-        """
-        startからgoalまでの経路をmap座標のリストで返す。到達できなければ空リストを返す
-        """
+        """62411499 髙野幹太"""
+        # startからgoalまでの経路をmap座標のリストで返す。到達できなければ空リストを返す
         begin = self.to_cell(start)
         end = self.to_cell(goal)
         pad = int(self.SEARCH_MARGIN / self.resolution)
@@ -120,9 +116,8 @@ class GridPlanner(object):
         return []
 
     def wall_distance(self, point, limit=0.6):
-        """
-        pointから最も近い壁や家具(静的地図の占有セル)までの距離を返す。limitより遠ければlimitを返す
-        """
+        """62411499 髙野幹太"""
+        # pointから最も近い壁や家具(静的地図の占有セル)までの距離を返す。limitより遠ければlimitを返す
         row, col = self.to_cell(point)
         pad = int(limit / self.resolution) + 1
         top, left = max(row - pad, 0), max(col - pad, 0)
@@ -134,9 +129,8 @@ class GridPlanner(object):
         return min(limit, float(np.min(np.hypot(cell_x - point[0], cell_y - point[1]))))
 
     def _restore(self, parent, cell, start, goal):
-        """
-        探索結果から経路を復元する。始点と終点は要求された座標そのものにする
-        """
+        """62411499 髙野幹太"""
+        # 探索結果から経路を復元する。始点と終点は要求された座標そのものにする
         cells = [cell]
         while cells[-1] in parent:
             cells.append(parent[cells[-1]])
@@ -145,9 +139,8 @@ class GridPlanner(object):
 
 
 def path_clearance(path, obstacles):
-    """
-    経路上の点から最も近い障害物までの距離を返す
-    """
+    """62411499 髙野幹太"""
+    # 経路上の点から最も近い障害物までの距離を返す
     best = float("inf")
     for point in path:
         for obstacle in obstacles:
@@ -156,9 +149,8 @@ def path_clearance(path, obstacles):
 
 
 def segment_distance(point, start, end):
-    """
-    pointから線分start-endまでの距離を返す
-    """
+    """62411499 髙野幹太"""
+    # pointから線分start-endまでの距離を返す
     seg_x, seg_y = end[0] - start[0], end[1] - start[1]
     length2 = seg_x ** 2 + seg_y ** 2
     ratio = 0.0 if length2 == 0.0 else max(0.0, min(1.0, (
@@ -167,9 +159,8 @@ def segment_distance(point, start, end):
 
 
 def cut_path(path, length):
-    """
-    経路の先頭からlength[m]までの部分を返す
-    """
+    """62411499 髙野幹太"""
+    # 経路の先頭からlength[m]までの部分を返す
     moved = 0.0
     for index in range(1, len(path)):
         moved += math.hypot(path[index][0] - path[index - 1][0],
@@ -466,10 +457,9 @@ class WrsMainController(object):
         return omni_base.go_abs(coord[0], coord[1], coord[2])
 
     def goto_avoiding(self, coord):
-        """
-        床の物体を避ける経路をA*で計画して追従し、最後に向きを合わせる。
-        move_baseは床の小物を地図に載せないので、物体を押したり台車の下に挟んだりする
-        """
+        """62411499 髙野幹太"""
+        # 床の物体を避ける経路をA*で計画して追従し、最後に向きを合わせる。
+        # move_baseは床の小物を地図に載せないので、物体を押したり台車の下に挟んだりする
         pose = self.get_base_pose()
         if pose is None:
             return False
@@ -489,9 +479,8 @@ class WrsMainController(object):
         return True
 
     def remember_floor_object(self, point):
-        """
-        床の物体のmap座標を記憶する。既に記憶した物体の近くなら位置を更新する
-        """
+        """62411499 髙野幹太"""
+        # 床の物体のmap座標を記憶する。既に記憶した物体の近くなら位置を更新する
         if point.z >= self.FLOOR_OBJECT_Z:
             return
         for index, (obj_x, obj_y) in enumerate(self.floor_objects):
@@ -501,9 +490,8 @@ class WrsMainController(object):
         self.floor_objects.append((point.x, point.y))
 
     def remember_object(self, point):
-        """
-        見えた物体の3次元座標を記憶する(床の物体なら台車の経路計画にも使う)
-        """
+        """62411499 髙野幹太"""
+        # 見えた物体の3次元座標を記憶する(床の物体なら台車の経路計画にも使う)
         self.remember_floor_object(point)
         for index, obj in enumerate(self.seen_objects):
             if (math.hypot(point.x - obj[0], point.y - obj[1]) < self.SAME_OBJECT_GAP
@@ -513,9 +501,8 @@ class WrsMainController(object):
         self.seen_objects.append((point.x, point.y, point.z))
 
     def forget_floor_object(self, point):
-        """
-        つかんで運んだ床の物体を記憶から消す
-        """
+        """62411499 髙野幹太"""
+        # つかんで運んだ床の物体を記憶から消す
         self.floor_objects = [(obj_x, obj_y) for obj_x, obj_y in self.floor_objects
                               if math.hypot(point.x - obj_x, point.y - obj_y)
                               >= self.SAME_OBJECT_RADIUS]
@@ -639,9 +626,8 @@ class WrsMainController(object):
         return match.group(1), match.group(2)
 
     def wait_for_instruction(self, timeout):
-        """
-        有効な指示文を新しい順に探して返す。timeout[s]待っても無ければ(None, None)を返す
-        """
+        """62414107 長澤桃峨"""
+        # 有効な指示文を新しい順に探して返す。timeout[s]待っても無ければ(None, None)を返す
         deadline = rospy.Time.now() + rospy.Duration(timeout)
         while not rospy.is_shutdown():
             for instruction in reversed(self.instruction_list):
@@ -655,24 +641,21 @@ class WrsMainController(object):
 
     @staticmethod
     def set_gripper(value, wait=2.0):
-        """
-        ハンドを動かす。gripper.commandの固定6秒待ちを短くして全体の時間を節約する
-        """
+        """62414107 長澤桃峨"""
+        # ハンドを動かす。gripper.commandの固定6秒待ちを短くして全体の時間を節約する
         gripper.GRIPPER_CMD.set_joint_value_target(str("hand_motor_joint"), value)
         gripper.GRIPPER_CMD.go()
         rospy.sleep(wait)
 
     def is_holding(self):
-        """
-        閉じた指の開き具合(hand_motor_joint)から物体を保持しているかを判定する
-        """
+        """62414107 長澤桃峨"""
+        # 閉じた指の開き具合(hand_motor_joint)から物体を保持しているかを判定する
         return self.grip_opening() >= self.GRIP_HOLD_THRESHOLD
 
     def grip_opening(self):
-        """
-        閉じた指の開き具合(hand_motor_joint)を返す。
-        空振りでも値が細かく振動するので、数回の平均を返す
-        """
+        """62414107 長澤桃峨"""
+        # 閉じた指の開き具合(hand_motor_joint)を返す。
+        # 空振りでも値が細かく振動するので、数回の平均を返す
         values = []
         for _ in range(self.GRIP_SAMPLES):
             try:
@@ -686,9 +669,8 @@ class WrsMainController(object):
         return opening
 
     def object_remains(self, point):
-        """
-        腕をたたんだ後に元の位置を見て、残っている物体の座標を返す。無ければNoneを返す
-        """
+        """62414107 長澤桃峨"""
+        # 腕をたたんだ後に元の位置を見て、残っている物体の座標を返す。無ければNoneを返す
         base = self.get_base_pose()
         if base is None:
             return None
@@ -703,10 +685,9 @@ class WrsMainController(object):
         return None
 
     def check_grasp(self, point):
-        """
-        腕をたたんだ後に、物体を保持しているかを返す。指の開き具合ではっきりしなければ
-        元の位置を見て、物体が無くなっていれば保持していると判断する(つかめた物体を落とさない)
-        """
+        """62414107 長澤桃峨"""
+        # 腕をたたんだ後に、物体を保持しているかを返す。指の開き具合ではっきりしなければ
+        # 元の位置を見て、物体が無くなっていれば保持していると判断する(つかめた物体を落とさない)
         self.last_seen = None
         opening = self.grip_opening()
         if opening >= self.GRIP_HOLD_THRESHOLD:
@@ -720,32 +701,28 @@ class WrsMainController(object):
         return self.last_seen is None
 
     def near_table(self, point, distance):
-        """
-        物体が、それより高い机の天板の縁からdistance以内(天板の下を含む)ならTrueを返す
-        """
+        """62401543 池畑一志"""
+        # 物体が、それより高い机の天板の縁からdistance以内(天板の下を含む)ならTrueを返す
         return any(self.rect_distance((point.x, point.y), table) < distance
                    and point.z < table["top"] - self.TABLE_MARGIN
                    for table in self.coordinates.get("tables", []))
 
     def retreat_from_tables(self, point, yaw_deg):
-        """
-        机の縁の近くでつかんだら、腕をたたむときに手が天板の裏に当たらないよう台車を下げる
-        """
+        """62401543 池畑一志"""
+        # 机の縁の近くでつかんだら、腕をたたむときに手が天板の裏に当たらないよう台車を下げる
         if self.near_table(point, self.TABLE_RETREAT):
             head, _ = self.heading(yaw_deg)
             self.shift_base(-self.TABLE_RETREAT * head[0], -self.TABLE_RETREAT * head[1], 0.0)
 
     def release_object(self):
-        """
-        手を開いて物体を放す
-        """
+        """62414107 長澤桃峨"""
+        # 手を開いて物体を放す
         self.set_gripper(1, wait=self.RELEASE_WAIT)
 
     def arm_joints(self, palm_z, hand_down):
-        """
-        手のひらを高さpalm_zに置く腕の関節値と、台車中心から手のひらまでの前方距離を返す。
-        手は真下(hand_down=True)または水平に向ける。高さが足りるうちはリフトだけで調整する
-        """
+        """62414107 長澤桃峨"""
+        # 手のひらを高さpalm_zに置く腕の関節値と、台車中心から手のひらまでの前方距離を返す。
+        # 手は真下(hand_down=True)または水平に向ける。高さが足りるうちはリフトだけで調整する
         base_height = self.PALM_HEIGHT_DOWN if hand_down else self.PALM_HEIGHT_FORWARD
         lift = palm_z - base_height
         flex = -math.pi / 2
@@ -761,11 +738,10 @@ class WrsMainController(object):
         return joints, forward + self.ARM_LENGTH * abs(math.sin(flex))
 
     def move_arm_slowly(self, joints, steps=None):
-        """
-        腕の関節値を少しずつ変えて動かす。
-        move_to_joint_positionsは1秒で動き切るので、大きく動かすと腕を振り回してしまう。
-        腕の制御器は一部の関節だけの指令を受け付けないので、指定の無い関節は今の値で送る
-        """
+        """62414107 長澤桃峨"""
+        # 腕の関節値を少しずつ変えて動かす。
+        # move_to_joint_positionsは1秒で動き切るので、大きく動かすと腕を振り回してしまう。
+        # 腕の制御器は一部の関節だけの指令を受け付けないので、指定の無い関節は今の値で送る
         names = whole_body.ARM_CMD.get_active_joints()
         start = dict(zip(names, whole_body.ARM_CMD.get_current_joint_values()))
         goal = {name: joints.get(name, start[name]) for name in self.ARM_JOINTS if name in start}
@@ -777,12 +753,11 @@ class WrsMainController(object):
                  for name, value in goal.items()})
 
     def reach_out(self, joints):
-        """
-        手が周囲に当たらないよう、高い位置で腕を前に向けてから、目標の姿勢へ腕を伸ばす。
-        手を下に向ける姿勢では、腕に直角な手のまま振り下ろすと、途中で指先が目標より
-        7〜12 cm前に出て机の縁や天板の上の物体に当たる。そこで手首を下限まで下に曲げたまま
-        手が真下を向く角度まで腕を倒し、その後は手を真下に向けたまま倒す(前に出るのは2 cm以内)
-        """
+        """62414107 長澤桃峨"""
+        # 手が周囲に当たらないよう、高い位置で腕を前に向けてから、目標の姿勢へ腕を伸ばす。
+        # 手を下に向ける姿勢では、腕に直角な手のまま振り下ろすと、途中で指先が目標より
+        # 7〜12 cm前に出て机の縁や天板の上の物体に当たる。そこで手首を下限まで下に曲げたまま
+        # 手が真下を向く角度まで腕を倒し、その後は手を真下に向けたまま倒す(前に出るのは2 cm以内)
         self.move_arm_slowly({"arm_lift_joint": joints["arm_lift_joint"]}, steps=1)
         hand_down = abs(joints["arm_flex_joint"] + joints["wrist_flex_joint"] + math.pi) < 0.05
         if not hand_down:
@@ -800,19 +775,17 @@ class WrsMainController(object):
         self.move_arm_slowly(joints)
 
     def fold_arm(self):
-        """
-        reach_outと逆の順序で腕をたたみ、搬送姿勢に戻す
-        """
+        """62414107 長澤桃峨"""
+        # reach_outと逆の順序で腕をたたみ、搬送姿勢に戻す
         self.move_arm_slowly({"arm_flex_joint": 0.0, "wrist_flex_joint": -math.pi / 2,
                               "wrist_roll_joint": 0.0})
         self.move_arm_slowly({"arm_roll_joint": -math.pi / 2}, steps=2)
         self.change_pose("all_neutral")
 
     def object_axis(self, target):
-        """
-        検出枠の中の点群から、面より高い点(物体)を取り出し、長い方向の角度[rad](map座標)と
-        中心(x, y)と長さ・幅[m]を返す。測れなければNoneを返す
-        """
+        """62401543 池畑一志"""
+        # 検出枠の中の点群から、面より高い点(物体)を取り出し、長い方向の角度[rad](map座標)と
+        # 中心(x, y)と長さ・幅[m]を返す。測れなければNoneを返す
         bbox = target.get("bbox")
         if bbox is None:
             return None
@@ -859,25 +832,22 @@ class WrsMainController(object):
                 "length": float(length), "width": float(width)}
 
     def axis_roll(self, axis, yaw_deg):
-        """
-        手を下に向けたとき、指が物体の長い方向と直角に閉じる手首の回転角(-90〜90度)を返す。
-        指の開く向きは、台車の向きから(90度 - 手首の回転角)の方向(URDFの順運動学で確認)
-        """
+        """62401543 池畑一志"""
+        # 手を下に向けたとき、指が物体の長い方向と直角に閉じる手首の回転角(-90〜90度)を返す。
+        # 指の開く向きは、台車の向きから(90度 - 手首の回転角)の方向(URDFの順運動学で確認)
         roll = math.radians(yaw_deg) - axis["angle"]
         return (roll + math.pi / 2) % math.pi - math.pi / 2
 
     @classmethod
     def wrist_roll_for(cls, bbox):
-        """
-        上からつかむときの手首の回転角を返す。指は横に開くので、
-        画像上で横長の物体は手首を90度回して短い方向を挟む
-        """
+        """62401543 池畑一志"""
+        # 上からつかむときの手首の回転角を返す。指は横に開くので、
+        # 画像上で横長の物体は手首を90度回して短い方向を挟む
         return math.pi / 2 if bbox.w > bbox.h * cls.LONG_OBJECT_RATIO else 0.0
 
     def surface_limit(self, height):
-        """
-        物体の高さから、その下の面(床か机)に手のひらが当たらない最低の高さを返す
-        """
+        """62401543 池畑一志"""
+        # 物体の高さから、その下の面(床か机)に手のひらが当たらない最低の高さを返す
         tables = [table for table in self.TABLE_HEIGHTS if table < height]
         if not tables:
             return self.FLOOR_PALM_ABOVE_SURFACE
@@ -887,40 +857,35 @@ class WrsMainController(object):
 
     @staticmethod
     def heading(yaw_deg):
-        """
-        台車の向きyaw_degの前方と左方向の単位ベクトルを返す
-        """
+        """62411499 髙野幹太"""
+        # 台車の向きyaw_degの前方と左方向の単位ベクトルを返す
         rad = math.radians(yaw_deg)
         return (math.cos(rad), math.sin(rad)), (-math.sin(rad), math.cos(rad))
 
     def base_for_palm(self, palm, yaw_deg, forward):
-        """
-        向きyaw_degで手のひらをpalm(x, y)に置くための台車の位置[x, y, yaw]を返す。
-        forwardは台車中心から手のひらまでの前方距離。手のひらは台車中心より左にずれている
-        """
+        """62411499 髙野幹太"""
+        # 向きyaw_degで手のひらをpalm(x, y)に置くための台車の位置[x, y, yaw]を返す。
+        # forwardは台車中心から手のひらまでの前方距離。手のひらは台車中心より左にずれている
         head, left = self.heading(yaw_deg)
         return [palm[0] - forward * head[0] - self.PALM_LATERAL * left[0],
                 palm[1] - forward * head[1] - self.PALM_LATERAL * left[1], yaw_deg]
 
     def above_grasp_joints(self, point):
-        """
-        上からつかむときの腕の関節値と、台車中心から手のひらまでの前方距離を返す
-        """
+        """62401543 池畑一志"""
+        # 上からつかむときの腕の関節値と、台車中心から手のひらまでの前方距離を返す
         palm_z = max(point.z + self.PALM_ABOVE_OBJECT, self.surface_limit(point.z))
         return self.arm_joints(palm_z, hand_down=True)
 
     def front_grasp_joints(self, point):
-        """
-        手を水平にして手前からつかむときの腕の関節値と、台車中心から手のひらまでの前方距離を返す
-        """
+        """62414107 長澤桃峨"""
+        # 手を水平にして手前からつかむときの腕の関節値と、台車中心から手のひらまでの前方距離を返す
         surface = self.surface_of(point.z) + self.FRONT_PALM_ABOVE_SURFACE
         return self.arm_joints(max(point.z, surface), hand_down=False)
 
     def hover_height(self, point):
-        """
-        上からつかむとき、物体の上で手を構える高さ(手のひらと、つかむ高さとの差)を返す。
-        物体より高い机の近くでは、構えた手首が天板とその上の物体に当たらない高さまで下げる
-        """
+        """62401543 池畑一志"""
+        # 上からつかむとき、物体の上で手を構える高さ(手のひらと、つかむ高さとの差)を返す。
+        # 物体より高い机の近くでは、構えた手首が天板とその上の物体に当たらない高さまで下げる
         palm_z = max(point.z + self.PALM_ABOVE_OBJECT, self.surface_limit(point.z))
         hover = self.HOVER_HEIGHT
         for table in self.coordinates.get("tables", []):
@@ -933,12 +898,11 @@ class WrsMainController(object):
         return max(self.MIN_HOVER, hover)
 
     def table_backoff(self, point, yaw_deg):
-        """
-        上からつかむとき、手を構える位置を物体から手前に戻す距離を返す。
-        物体の上に天板がかかっていると、上から下ろす手が天板を通り抜けて当たるので、
-        手を天板の外(縁からHAND_CLEARANCE)で天板より低く構え、台車で物体の上まで進める。
-        戻しても天板の外に出られなければNoneを返す
-        """
+        """62401543 池畑一志"""
+        # 上からつかむとき、手を構える位置を物体から手前に戻す距離を返す。
+        # 物体の上に天板がかかっていると、上から下ろす手が天板を通り抜けて当たるので、
+        # 手を天板の外(縁からHAND_CLEARANCE)で天板より低く構え、台車で物体の上まで進める。
+        # 戻しても天板の外に出られなければNoneを返す
         tables = [table for table in self.coordinates.get("tables", [])
                   if point.z < table["top"] - self.TABLE_MARGIN]
         head, _ = self.heading(yaw_deg)
@@ -951,9 +915,8 @@ class WrsMainController(object):
         return None
 
     def grasp_from_above(self, point, wrist_roll=0.0, yaw_deg=90.0):
-        """
-        台車を止めて腕だけで、物体の真上から下ろしてつかむ。台車は物体からyaw_degの向きに置く
-        """
+        """62401543 池畑一志"""
+        # 台車を止めて腕だけで、物体の真上から下ろしてつかむ。台車は物体からyaw_degの向きに置く
         joints, forward = self.above_grasp_joints(point)
         joints["wrist_roll_joint"] = wrist_roll
         hover = dict(joints, arm_lift_joint=joints["arm_lift_joint"] + self.hover_height(point))
@@ -999,10 +962,9 @@ class WrsMainController(object):
         return self.check_grasp(point)
 
     def grasp_from_front(self, point, yaw_deg=90.0, approach=None):
-        """
-        手を水平にして手前から近づけてつかむ。腕の高さは固定で台車を前進させる。
-        台車は物体からyaw_degの向きに置き、手はapproach[m]手前で腕を伸ばし切ってから差し入れる
-        """
+        """62414107 長澤桃峨"""
+        # 手を水平にして手前から近づけてつかむ。腕の高さは固定で台車を前進させる。
+        # 台車は物体からyaw_degの向きに置き、手はapproach[m]手前で腕を伸ばし切ってから差し入れる
         joints, forward = self.front_grasp_joints(point)
         head, _ = self.heading(yaw_deg)
         approach = approach or self.SIDE_APPROACH + self.front_overshoot(point)
@@ -1028,34 +990,29 @@ class WrsMainController(object):
         return self.check_grasp(point)
 
     def height_above_surface(self, point):
-        """
-        物体の中心の、下の面(床か机)からの高さを返す
-        """
+        """62401543 池畑一志"""
+        # 物体の中心の、下の面(床か机)からの高さを返す
         return point.z - max([t for t in self.TABLE_HEIGHTS if t < point.z] or [0.0])
 
     def is_skipped(self, label, point):
-        """
-        つかむのが難しいので後回しにする物体ならTrueを返す
-        """
+        """62401543 池畑一志"""
+        # つかむのが難しいので後回しにする物体ならTrueを返す
         return label in self.SKIP_LABELS and self.height_above_surface(point) < self.SKIP_MAX_HEIGHT
 
     def is_front_grasp(self, target):
-        """
-        背の高い物体なら、手を水平にして手前からつかむのでTrueを返す
-        """
+        """62401543 池畑一志"""
+        # 背の高い物体なら、手を水平にして手前からつかむのでTrueを返す
         return (target["label"] in self.SIDE_GRASP_LABELS
                 and self.height_above_surface(target["point"]) >= self.SIDE_GRASP_MIN_Z)
 
     def surface_of(self, height):
-        """
-        高さheightの物体が載っている面(床か机)の高さを返す
-        """
+        """62414107 長澤桃峨"""
+        # 高さheightの物体が載っている面(床か机)の高さを返す
         return max([t for t in self.TABLE_HEIGHTS if t < height] or [0.0])
 
     def table_over(self, point):
-        """
-        物体の上に天板がある机(物体が天板の下にある机)を返す。無ければNoneを返す
-        """
+        """62401543 池畑一志"""
+        # 物体の上に天板がある机(物体が天板の下にある机)を返す。無ければNoneを返す
         for table in self.coordinates.get("tables", []):
             if (table["x"][0] <= point.x <= table["x"][1]
                     and table["y"][0] <= point.y <= table["y"][1]
@@ -1065,9 +1022,8 @@ class WrsMainController(object):
 
     @staticmethod
     def rect_distance(xy, table):
-        """
-        点xyから机の天板の範囲までの水平距離を返す。範囲の内側なら負の値(縁までの距離)を返す
-        """
+        """62414107 長澤桃峨"""
+        # 点xyから机の天板の範囲までの水平距離を返す。範囲の内側なら負の値(縁までの距離)を返す
         out_x = max(table["x"][0] - xy[0], xy[0] - table["x"][1])
         out_y = max(table["y"][0] - xy[1], xy[1] - table["y"][1])
         if out_x <= 0.0 and out_y <= 0.0:
@@ -1075,21 +1031,19 @@ class WrsMainController(object):
         return math.hypot(max(out_x, 0.0), max(out_y, 0.0))
 
     def front_overshoot(self, point):
-        """
-        手を水平にして低い物体をつかむとき、腕を伸ばす途中で手が目標より前に出る距離を返す。
-        腕を上から振り下ろすので、腕が水平になったときに手が最も前に出る
-        """
+        """62414107 長澤桃峨"""
+        # 手を水平にして低い物体をつかむとき、腕を伸ばす途中で手が目標より前に出る距離を返す。
+        # 腕を上から振り下ろすので、腕が水平になったときに手が最も前に出る
         flex = self.front_grasp_joints(point)[0]["arm_flex_joint"]
         if flex >= -math.pi / 2:
             return 0.0
         return self.ARM_LENGTH * (1.0 - math.sin(-flex))
 
     def front_approach(self, target, yaw_deg):
-        """
-        手前からつかむとき、腕を伸ばし切る位置から手を差し入れる距離を返す。
-        腕を伸ばす途中で手が前に出る分(front_overshoot)だけ遠くで腕を伸ばす。
-        物体が天板の下にあれば、前に出た指先も天板の外に収まる距離にする
-        """
+        """62401543 池畑一志"""
+        # 手前からつかむとき、腕を伸ばし切る位置から手を差し入れる距離を返す。
+        # 腕を伸ばす途中で手が前に出る分(front_overshoot)だけ遠くで腕を伸ばす。
+        # 物体が天板の下にあれば、前に出た指先も天板の外に収まる距離にする
         point = target["point"]
         overshoot = self.front_overshoot(point)
         approach = self.SIDE_APPROACH + overshoot
@@ -1109,9 +1063,8 @@ class WrsMainController(object):
         return None
 
     def grasp_reach(self, target, plan):
-        """
-        つかむ位置に置いた台車の中心から、物体までの前方距離を返す
-        """
+        """62401543 池畑一志"""
+        # つかむ位置に置いた台車の中心から、物体までの前方距離を返す
         point = target["point"]
         if plan[0] == "front":
             forward = self.front_grasp_joints(point)[1]
@@ -1119,11 +1072,10 @@ class WrsMainController(object):
         return self.above_grasp_joints(point)[1]
 
     def base_margin(self, target, plan):
-        """
-        床の物体をつかむときの、台車と腕の余裕[m]を返す。負なら当たる。
-        台車の位置(つかむ位置と見直す位置)と壁・机の天板・他の床の物体の距離、
-        台車から物体までの腕の通り道と他の床の物体の距離を調べる
-        """
+        """62401543 池畑一志"""
+        # 床の物体をつかむときの、台車と腕の余裕[m]を返す。負なら当たる。
+        # 台車の位置(つかむ位置と見直す位置)と壁・机の天板・他の床の物体の距離、
+        # 台車から物体までの腕の通り道と他の床の物体の距離を調べる
         point = target["point"]
         yaw_deg = plan[1]
         base = self.base_for_palm((point.x, point.y), yaw_deg, self.grasp_reach(target, plan))
@@ -1144,11 +1096,10 @@ class WrsMainController(object):
         return min(margins)
 
     def hand_margin(self, target, plan):
-        """
-        つかむときに手が動く範囲と、同じ面に載った他の物体や机の天板との余裕[m]を返す。
-        負なら当たる。上からつかむときは、物体の真上に下ろした手の指が開く範囲を調べる。
-        手前からつかむときは、水平な手が物体まで進む通り道を調べる
-        """
+        """62401543 池畑一志"""
+        # つかむときに手が動く範囲と、同じ面に載った他の物体や机の天板との余裕[m]を返す。
+        # 負なら当たる。上からつかむときは、物体の真上に下ろした手の指が開く範囲を調べる。
+        # 手前からつかむときは、水平な手が物体まで進む通り道を調べる
         style, yaw_deg, roll, approach = plan
         point = target["point"]
         head, left = self.heading(yaw_deg)
@@ -1209,10 +1160,9 @@ class WrsMainController(object):
         return min(margins)
 
     def sweep_volumes(self, target, plan):
-        """
-        つかむ間に手と腕が動く空間を返す。手は[(x, y)の線分, 下端, 上端]、
-        腕は台車から手までの[(x, y, 下端, 上端)の点列]で表す
-        """
+        """62401543 池畑一志"""
+        # つかむ間に手と腕が動く空間を返す。手は[(x, y)の線分, 下端, 上端]、
+        # 腕は台車から手までの[(x, y, 下端, 上端)の点列]で表す
         style, yaw_deg, _, approach = plan
         point = target["point"]
         head, _ = self.heading(yaw_deg)
@@ -1244,10 +1194,9 @@ class WrsMainController(object):
         return hand, arm
 
     def sweep_margin(self, target, plan):
-        """
-        つかむ間に手と腕が動く空間と、見えた物体(机の上も含む)や机の天板との余裕[m]を返す。
-        負なら当たる。同じ面の低い物体は、指が開く範囲の判定(hand_margin)に任せる
-        """
+        """62401543 池畑一志"""
+        # つかむ間に手と腕が動く空間と、見えた物体(机の上も含む)や机の天板との余裕[m]を返す。
+        # 負なら当たる。同じ面の低い物体は、指が開く範囲の判定(hand_margin)に任せる
         point = target["point"]
         (segment, hand_low, hand_high), arm = self.sweep_volumes(target, plan)
         palm_low = hand_low + self.PALM_TO_CLOSED_TIP if plan[0] == "above" else hand_low
@@ -1278,11 +1227,10 @@ class WrsMainController(object):
         return min(margins)
 
     def grasp_plans(self, target, prefer_yaw):
-        """
-        つかみ方(方法, 台車の向き, 手首の回転, 手を差し入れる距離)の候補を試す順に返す。
-        台車を動かさずに済むよう、同じ向きで手首の回転や方法を変える候補を先にする。
-        天板の下の物体は手前からだけ、机の上の物体は正面からだけ
-        """
+        """62401543 池畑一志"""
+        # つかみ方(方法, 台車の向き, 手首の回転, 手を差し入れる距離)の候補を試す順に返す。
+        # 台車を動かさずに済むよう、同じ向きで手首の回転や方法を変える候補を先にする。
+        # 天板の下の物体は手前からだけ、机の上の物体は正面からだけ
         point = target["point"]
         floor = point.z < self.NO_APPROACH_Z and self.planner is not None
         yaws = sorted(self.GRASP_YAWS if floor else (90,),
@@ -1333,11 +1281,10 @@ class WrsMainController(object):
         return plans
 
     def choose_grasp_plans(self, target, prefer_yaw=90.0, count=1):
-        """
-        台車、腕、手が壁や机や他の物体に当たらないつかみ方を、試す順に最大count個返す。
-        当たらないものが足りなければ、余裕がPLAN_TOLERANCE以上のものを余裕の大きい順に足す。
-        どれも当たるなら空のリストを返す(つかまずに飛ばす)
-        """
+        """62401543 池畑一志"""
+        # 台車、腕、手が壁や机や他の物体に当たらないつかみ方を、試す順に最大count個返す。
+        # 当たらないものが足りなければ、余裕がPLAN_TOLERANCE以上のものを余裕の大きい順に足す。
+        # どれも当たるなら空のリストを返す(つかまずに飛ばす)
         floor = target["point"].z < self.NO_APPROACH_Z and self.planner is not None
         safe, risky = [], []
         for plan in self.grasp_plans(target, prefer_yaw):
@@ -1359,16 +1306,14 @@ class WrsMainController(object):
         return plans
 
     def choose_grasp_plan(self, target, prefer_yaw=90.0):
-        """
-        最も良いつかみ方を1つ返す。どれも当たるならNoneを返す
-        """
+        """62401543 池畑一志"""
+        # 最も良いつかみ方を1つ返す。どれも当たるならNoneを返す
         plans = self.choose_grasp_plans(target, prefer_yaw)
         return plans[0] if plans else None
 
     def object_ends(self, bbox):
-        """
-        検出枠を長い方向に分け、両端の部分の3次元座標を返す。測れなければNoneを返す
-        """
+        """62401543 池畑一志"""
+        # 検出枠を長い方向に分け、両端の部分の3次元座標を返す。測れなければNoneを返す
         ends = []
         for side in (0, 1):
             part = copy.deepcopy(bbox)
@@ -1385,11 +1330,10 @@ class WrsMainController(object):
         return ends
 
     def stand_up_plan(self, target):
-        """
-        寝ている背の高い物体を縦に起こして置くつかみ方を返す。対象でなければNoneを返す。
-        上からつかんだ手を水平にすると、台車に近い側の端が下になるので、底(低い側の端)の側に
-        台車を置き、頭(高い側の端。windexはスプレーの頭)の方向を向いてつかむ
-        """
+        """62401543 池畑一志"""
+        # 寝ている背の高い物体を縦に起こして置くつかみ方を返す。対象でなければNoneを返す。
+        # 上からつかんだ手を水平にすると、台車に近い側の端が下になるので、底(低い側の端)の側に
+        # 台車を置き、頭(高い側の端。windexはスプレーの頭)の方向を向いてつかむ
         point = target["point"]
         if (target["label"] not in self.STAND_UP_LABELS or target.get("bbox") is None
                 or self.height_above_surface(point) >= self.SIDE_GRASP_MIN_Z):
@@ -1422,9 +1366,8 @@ class WrsMainController(object):
         return None
 
     def exec_grasp_plan(self, target, plan):
-        """
-        task1専用:選んだつかみ方で物体をつかみ、保持できたかを返す
-        """
+        """62401543 池畑一志"""
+        # task1専用:選んだつかみ方で物体をつかみ、保持できたかを返す
         style, yaw_deg, roll, approach = plan
         if style == "front":
             return self.grasp_from_front(target["point"], yaw_deg, approach)
@@ -1432,10 +1375,9 @@ class WrsMainController(object):
         return self.grasp_from_above(target["point"], roll, yaw_deg)
 
     def find_shelf_target(self, target_obj):
-        """
-        頭の角度を変えながら棚を見て、把持する物体のbboxを返す。
-        指定物体が見えなければ、誤配達でも得点になるので見えた物体を代わりに返す
-        """
+        """62414107 長澤桃峨"""
+        # 頭の角度を変えながら棚を見て、把持する物体のbboxを返す。
+        # 指定物体が見えなければ、誤配達でも得点になるので見えた物体を代わりに返す
         substitute = None
         for tilt in self.SHELF_TILTS:
             whole_body.move_head_tilt(tilt)
@@ -1449,9 +1391,8 @@ class WrsMainController(object):
         return substitute
 
     def grasp_from_shelf(self, target_obj):
-        """
-        棚の前で物体を掴む。保持できたらTrueを返す
-        """
+        """62414107 長澤桃峨"""
+        # 棚の前で物体を掴む。保持できたらTrueを返す
         for trial in range(self.SHELF_GRASP_RETRY):
             rospy.loginfo("shelf grasp trial %d", trial + 1)
             self.goto_name("shelf")
@@ -1483,9 +1424,8 @@ class WrsMainController(object):
         self.change_pose("all_neutral")
 
     def detect_floor_obstacles(self, known):
-        """
-        カメラに写った床上の物体のmap座標をknownに追加する
-        """
+        """62411499 髙野幹太"""
+        # カメラに写った床上の物体のmap座標をknownに追加する
         area = self.OBSTACLE_AREA
         for bbox in self.get_latest_detection().bboxes:
             point = self.get_grasp_coordinate(bbox)
@@ -1501,9 +1441,8 @@ class WrsMainController(object):
         rospy.loginfo("known obstacles: %s", known)
 
     def get_base_pose(self):
-        """
-        台車のmap座標(x, y, yaw[rad])を返す。取得できなければNoneを返す
-        """
+        """62411499 髙野幹太"""
+        # 台車のmap座標(x, y, yaw[rad])を返す。取得できなければNoneを返す
         transform = self.get_relative_coordinate("map", "base_footprint")
         if transform is None:
             return None
@@ -1513,10 +1452,9 @@ class WrsMainController(object):
         return transform.translation.x, transform.translation.y, yaw
 
     def follow_path(self, path, yaw_deg=90.0, tolerance=None):
-        """
-        経路上の点を順に速度指令で追従する。向きを保ったまま全方向移動台車で平行移動する。
-        move_baseは床の小物を避けられず軌跡も膨らむため、計画した経路どおりに走らせる
-        """
+        """62411499 髙野幹太"""
+        # 経路上の点を順に速度指令で追従する。向きを保ったまま全方向移動台車で平行移動する。
+        # move_baseは床の小物を避けられず軌跡も膨らむため、計画した経路どおりに走らせる
         rate = rospy.Rate(20)
         deadline = rospy.Time.now() + rospy.Duration(self.FOLLOW_TIMEOUT)
         limit = tolerance or self.FOLLOW_TOLERANCE
@@ -1566,10 +1504,9 @@ class WrsMainController(object):
                 return
 
     def get_category(self, label):
-        """
-        検出ラベルからTask 1のカテゴリ名を返す。どれにも属さなければotherを返す。
-        label_depositsに書いたラベル(cup)は、そこに書いた収納先のカテゴリにする
-        """
+        """62414107 長澤桃峨"""
+        # 検出ラベルからTask 1のカテゴリ名を返す。どれにも属さなければotherを返す。
+        # label_depositsに書いたラベル(cup)は、そこに書いた収納先のカテゴリにする
         override = self.coordinates.get("label_deposits", {}).get(label)
         if override is not None:
             return override
@@ -1579,9 +1516,8 @@ class WrsMainController(object):
         return "other"
 
     def get_odom_joints(self):
-        """
-        omni_base_controllerが制御している台車の姿勢[odom_x, odom_y, odom_t]を返す
-        """
+        """62411499 髙野幹太"""
+        # omni_base_controllerが制御している台車の姿勢[odom_x, odom_y, odom_t]を返す
         try:
             state = rospy.wait_for_message(
                 "/hsrb/omni_base_controller/state", JointTrajectoryControllerState, 2.0)
@@ -1592,9 +1528,8 @@ class WrsMainController(object):
         return [odom["odom_x"], odom["odom_y"], odom["odom_t"]]
 
     def send_base_goal(self, goal, duration):
-        """
-        omni_base_controllerに台車の目標姿勢(odom座標)を送り、動き終わるまで待つ
-        """
+        """62411499 髙野幹太"""
+        # omni_base_controllerに台車の目標姿勢(odom座標)を送り、動き終わるまで待つ
         point = JointTrajectoryPoint(positions=goal, velocities=[0.0] * 3,
                                      time_from_start=rospy.Duration(duration))
         traj = JointTrajectory(joint_names=["odom_x", "odom_y", "odom_t"], points=[point])
@@ -1602,22 +1537,20 @@ class WrsMainController(object):
         self.base_client.wait_for_result(rospy.Duration(duration + 3.0))
 
     def hold_base(self):
-        """
-        台車の目標姿勢を今の姿勢に置き直す。
-        台車の制御は数度の誤差を残したまま止まり、腕を動かした振動などで急に回って誤差を
-        取り戻すので、目標と今の姿勢を一致させて、つかむ間に台車が動かないようにする
-        """
+        """62411499 髙野幹太"""
+        # 台車の目標姿勢を今の姿勢に置き直す。
+        # 台車の制御は数度の誤差を残したまま止まり、腕を動かした振動などで急に回って誤差を
+        # 取り戻すので、目標と今の姿勢を一致させて、つかむ間に台車が動かないようにする
         rospy.sleep(0.5)
         current = self.get_odom_joints()
         if current is not None:
             self.send_base_goal(current, 0.3)
 
     def shift_base(self, d_x, d_y, d_yaw, speed=None):
-        """
-        台車をmap座標でd_x, d_y[m]平行移動し、d_yaw[rad]回す。
-        速度指令で止めると、制御器が少しずれた姿勢を保持し直して数度回ってしまうので、
-        omni_base_controllerに目標姿勢(odom座標)を直接送る
-        """
+        """62411499 髙野幹太"""
+        # 台車をmap座標でd_x, d_y[m]平行移動し、d_yaw[rad]回す。
+        # 速度指令で止めると、制御器が少しずれた姿勢を保持し直して数度回ってしまうので、
+        # omni_base_controllerに目標姿勢(odom座標)を直接送る
         pose = self.get_base_pose()
         odom = self.get_odom_joints()
         if pose is None or odom is None:
@@ -1636,12 +1569,11 @@ class WrsMainController(object):
 
     def align_hand_over(self, target, yaw_deg, tolerance=None, trials=None, rotate=True,
                         verify=False):
-        """
-        手のひらのTFを実測し、手のひらがtargetの真上に来て台車がyaw_degを向くように台車を動かす。
-        回転すると手のひらも振れるので、回転後の手のひらの位置から台車の移動量を求める。
-        rotateがFalseなら向きは直さず、平行移動だけで手のひらを合わせる。
-        verifyがTrueなら最後は動かずに測り直し、許容誤差に入らなければFalseを返す
-        """
+        """62411499 髙野幹太"""
+        # 手のひらのTFを実測し、手のひらがtargetの真上に来て台車がyaw_degを向くように台車を動かす。
+        # 回転すると手のひらも振れるので、回転後の手のひらの位置から台車の移動量を求める。
+        # rotateがFalseなら向きは直さず、平行移動だけで手のひらを合わせる。
+        # verifyがTrueなら最後は動かずに測り直し、許容誤差に入らなければFalseを返す
         self.hold_base()
         tolerance = tolerance or self.ALIGN_TOLERANCE * 1.5
         trials = trials or self.ALIGN_TRIALS
@@ -1679,13 +1611,12 @@ class WrsMainController(object):
         return True
 
     def deposit_joints(self, entry, style):
-        """
-        収納先の縁のすぐ上で腕を水平に伸ばす関節値と、手のひらを合わせる位置を返す。
-        上からつかんだ物体は手を下に向けたまま、床にあったときの向きで置く(手のひらの真下に
-        落ちるので位置が正確で、寝ていた物体は寝たまま置ける)。
-        手前からつかんだ立った物体と縦に起こす物体(stand)は手を水平にし、
-        下端が縁のすぐ上に来る高さで放す
-        """
+        """62414107 長澤桃峨"""
+        # 収納先の縁のすぐ上で腕を水平に伸ばす関節値と、手のひらを合わせる位置を返す。
+        # 上からつかんだ物体は手を下に向けたまま、床にあったときの向きで置く(手のひらの真下に
+        # 落ちるので位置が正確で、寝ていた物体は寝たまま置ける)。
+        # 手前からつかんだ立った物体と縦に起こす物体(stand)は手を水平にし、
+        # 下端が縁のすぐ上に来る高さで放す
         pose = self.poses[entry["pose"]]
         # 縁の高さ。設定に無ければ収納用の姿勢(縁の0.10 m上に手のひら)から求める
         rim = entry.get("rim", pose["arm_lift_joint"] + self.PALM_HEIGHT_FORWARD
@@ -1702,11 +1633,10 @@ class WrsMainController(object):
                         entry["target"][1] - self.PALM_TO_CLOSED_TIP * head[1]), forward
 
     def align_base_for_palm(self, palm, yaw_deg, forward, trials=3, tolerance=0.01):
-        """
-        腕をたたんだまま、腕を伸ばしたときの手のひらがpalm(map座標)に来るよう台車を合わせる。
-        台車が追従しない小さな向きのずれ(2度で手のひらが2 cm横にずれる)は残るので、
-        手のひらの位置は今の向きで予測する(台車のTFで測る)
-        """
+        """62414107 長澤桃峨"""
+        # 腕をたたんだまま、腕を伸ばしたときの手のひらがpalm(map座標)に来るよう台車を合わせる。
+        # 台車が追従しない小さな向きのずれ(2度で手のひらが2 cm横にずれる)は残るので、
+        # 手のひらの位置は今の向きで予測する(台車のTFで測る)
         for _ in range(trials):
             pose = self.get_base_pose()
             if pose is None:
@@ -1724,11 +1654,10 @@ class WrsMainController(object):
             self.shift_base(d_x, d_y, d_yaw)
 
     def slot_entry(self, entry, label):
-        """
-        収納先のslot_labelsに書いた物体(pitcher、cup、toy_airplane)は、その置き場所(slots)を
-        落とす位置にした収納先を返す。それ以外の物体は、置き場所と分けた元の収納先
-        (target、drop)を返す
-        """
+        """62414107 長澤桃峨"""
+        # 収納先のslot_labelsに書いた物体(pitcher、cup、toy_airplane)は、その置き場所(slots)を
+        # 落とす位置にした収納先を返す。それ以外の物体は、置き場所と分けた元の収納先
+        # (target、drop)を返す
         plain = {key: value for key, value in entry.items()
                  if key not in ("slots", "slot_labels")}
         slots = entry.get("slots")
@@ -1738,10 +1667,9 @@ class WrsMainController(object):
         return dict(entry, target=list(slots[index]), drop=list(slots[index]))
 
     def deposit_object(self, label, style="above"):
-        """
-        掴んでいる物体をカテゴリの収納先の縁のすぐ上まで運び、水平に腕を伸ばして落とす。
-        手を箱の中に入れないので、箱や引き出しに腕が引っ掛からない
-        """
+        """62414107 長澤桃峨"""
+        # 掴んでいる物体をカテゴリの収納先の縁のすぐ上まで運び、水平に腕を伸ばして落とす。
+        # 手を箱の中に入れないので、箱や引き出しに腕が引っ掛からない
         category = self.get_category(label)
         entries = self.coordinates["deposits"][category]
         if any("drawer" in entry for entry in entries):
@@ -1796,10 +1724,9 @@ class WrsMainController(object):
         self.fold_arm()
 
     def open_drawer(self, drawer):
-        """
-        取っ手の軸を指で挟み、腕は固定したまま台車を後退させて引き出しを開ける。
-        関節姿勢を固定して手のひらのTFで位置合わせするので、全身IKのように台車の向きが変わらない
-        """
+        """62414107 長澤桃峨"""
+        # 取っ手の軸を指で挟み、腕は固定したまま台車を後退させて引き出しを開ける。
+        # 関節姿勢を固定して手のひらのTFで位置合わせするので、全身IKのように台車の向きが変わらない
         handle_x, handle_y = drawer["handle"][:2]
         palm_x = handle_x - self.PINCH_X_OFFSET
         palm_y = handle_y - self.HANDLE_GAP + self.PALM_TO_CLOSED_TIP
@@ -1893,10 +1820,9 @@ class WrsMainController(object):
         return True
 
     def select_grasp_target(self, failed):
-        """
-        視野内で把持できそうな物体を中央に近い順に調べ、ラベル・3次元座標・bboxを返す。
-        失敗済みの位置と、把持できない位置の物体は除く。無ければNoneを返す
-        """
+        """62411499 髙野幹太"""
+        # 視野内で把持できそうな物体を中央に近い順に調べ、ラベル・3次元座標・bboxを返す。
+        # 失敗済みの位置と、把持できない位置の物体は除く。無ければNoneを返す
         bboxes = self.get_latest_detection().bboxes
         candidates = [bbox for bbox in bboxes if bbox.label not in self.IGNORE_LIST
                       and bbox.score >= self.MIN_DETECTION_SCORE]
@@ -1920,18 +1846,16 @@ class WrsMainController(object):
 
     @staticmethod
     def is_ungraspable(point):
-        """
-        机の奥の床にあり腕が届かない位置ならTrueを返す
-        """
+        """62411499 髙野幹太"""
+        # 机の奥の床にあり腕が届かない位置ならTrueを返す
         graspable_y = 1.85
         desk_z = 0.35
         return point.y > graspable_y and point.z < desk_z
 
     def refine_target(self, target, pose, yaw_deg=90.0):
-        """
-        床の物体に、つかむときと同じ向きで近づいてから見直し、精度の良い結果を返す。
-        見失ったら元の結果を返す
-        """
+        """62411499 髙野幹太"""
+        # 床の物体に、つかむときと同じ向きで近づいてから見直し、精度の良い結果を返す。
+        # 見失ったら元の結果を返す
         point = target["point"]
         if point.z >= self.NO_APPROACH_Z:
             return target
@@ -1966,17 +1890,15 @@ class WrsMainController(object):
         return best
 
     def own_radius(self, target):
-        """
-        つかむ物体自身の検出とみなす半径を返す。大きい物体(pitcherは幅約15 cm)はラベルごとに
-        検出位置がずれるので、ずれた検出を隣の物体と誤って当たり判定しないよう広げる
-        """
+        """62411499 髙野幹太"""
+        # つかむ物体自身の検出とみなす半径を返す。大きい物体(pitcherは幅約15 cm)はラベルごとに
+        # 検出位置がずれるので、ずれた検出を隣の物体と誤って当たり判定しないよう広げる
         return min(self.OWN_RADIUS_MAX,
                    max(self.SAME_OBJECT_GAP, self.object_width(target) * 0.75))
 
     def object_width(self, target):
-        """
-        検出枠とカメラからの距離から、物体の短い方向の幅[m]を見積もる。分からなければ0を返す
-        """
+        """62411499 髙野幹太"""
+        # 検出枠とカメラからの距離から、物体の短い方向の幅[m]を見積もる。分からなければ0を返す
         bbox, point = target.get("bbox"), target["point"]
         if bbox is None:
             return 0.0
@@ -1988,9 +1910,8 @@ class WrsMainController(object):
         return min(bbox.w, bbox.h) * dist / self.CAMERA_FOCAL
 
     def label_fits_size(self, label, bbox, point):
-        """
-        小さいはずのラベルの物体が、検出枠の大きさから見て大きすぎなければTrueを返す
-        """
+        """62411499 髙野幹太"""
+        # 小さいはずのラベルの物体が、検出枠の大きさから見て大きすぎなければTrueを返す
         largest = self.LABEL_MAX_SIZE.get(label)
         smallest = self.LABEL_MIN_SIZE.get(label)
         camera = self.get_relative_coordinate("map", self.CAMERA_FRAME)
@@ -2008,10 +1929,9 @@ class WrsMainController(object):
         return True
 
     def pick_and_deposit(self, place, pose, failed):
-        """
-        探索位置で物体を1つ掴んで収納する。
-        収納できたらdone、失敗したらfailed、物体が無ければnone、後回しにしたらdeferredを返す
-        """
+        """62401543 池畑一志"""
+        # 探索位置で物体を1つ掴んで収納する。
+        # 収納できたらdone、失敗したらfailed、物体が無ければnone、後回しにしたらdeferredを返す
         self.goto_name(place)
         self.change_pose(pose)
         self.set_gripper(0, wait=1.0)
@@ -2099,10 +2019,9 @@ class WrsMainController(object):
         rospy.loginfo("task1 finished: %d objects", total)
 
     def clear_search_point(self, place, pose, total, start):
-        """
-        探索位置で、物体が無くなるか失敗が続くまで収納を繰り返し、収納した数を返す。
-        後回しにした物体(deferred)は失敗に数えない
-        """
+        """62411499 髙野幹太"""
+        # 探索位置で、物体が無くなるか失敗が続くまで収納を繰り返し、収納した数を返す。
+        # 後回しにした物体(deferred)は失敗に数えない
         failed = []
         fails = 0
         done = 0
